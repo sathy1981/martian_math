@@ -1,0 +1,23 @@
+{
+  "name": "martian-math-backend",
+  "version": "1.0.0",
+  "description": "Backend API for R.A.L.F. - the Martian Math AI assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["education", "math", "ai", "openai", "game"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "openai": "^4.28.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
+

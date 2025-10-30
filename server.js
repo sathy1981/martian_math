@@ -84,6 +84,8 @@ app.post('/chat', async (req, res) => {
                     userMessage = `The student's mix: ${tanks.O2} Oxygen tanks (${tanks.O2 * 10}%), ${tanks.N2} Nitrogen tanks (${tanks.N2 * 10}%), ${tanks.Other} Other tanks (${tanks.Other * 10}%).\n\nTarget: ${target.O2} Oxygen (20%), ${target.N2} Nitrogen (70%), ${target.Other} Other (10%).\n\nGive specific feedback on the biggest error. Explain what's wrong in terms of percentages and tanks. Give hints to help them fix it.`;
                 }
             }
+        } else if (type === 'event' && req.body.event === 'phase2_start') {
+            userMessage = 'Emergency mode activated: Five tanks remain after a hull breach. Ask the student to approximate the safe mix using 5 tanks. Acceptable targets: 1 oxygen, 3 nitrogen, 1 other OR 1 oxygen, 4 nitrogen, 0 other. Encourage thinking about each tank as 20%.';
         }
         
         // Build messages array with history

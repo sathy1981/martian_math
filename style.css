@@ -387,6 +387,24 @@ header h2 {
     transform: translateY(0);
 }
 
+.next-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.05em;
+    font-weight: bold;
+    color: #1a1a2e;
+    background: linear-gradient(135deg, #4ecdc4 0%, #a8e6cf 100%);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5);
+}
+
 /* Safety Meter */
 .safety-meter {
     background: rgba(255, 255, 255, 0.08);

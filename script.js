@@ -1,9 +1,10 @@
-// Target mix: 10 tanks total
-const targetMix = { O2: 2, N2: 7, Other: 1 }; // 2 tanks O2 (20%), 7 tanks N2 (70%), 1 tank Other (10%)
-const TOTAL_TANKS = 10;
+// Target mix (Phase 1): 10 tanks total
+let totalTanks = 10;
+let targetMix = { O2: 2, N2: 7, Other: 1 }; // 2 O2, 7 N2, 1 Other
+let currentPhase = 1; // 1 = 10 tanks, 2 = 5 tanks emergency mode
 
 // Game state
-let tanks = Array(TOTAL_TANKS).fill('empty');
+let tanks = Array(totalTanks).fill('empty');
 let selectedGas = 'empty';
 let isGameWon = false;
 
@@ -16,6 +17,7 @@ const confirmBtn = document.getElementById('confirmBtn');
 const resetBtn = document.getElementById('resetBtn');
 const clearChatBtn = document.getElementById('clearChatBtn');
 const safetyBar = document.getElementById('safetyBar');
+const nextChallengeBtn = document.getElementById('nextChallengeBtn');
 
 const o2CountEl = document.getElementById('o2Count');
 const n2CountEl = document.getElementById('n2Count');
@@ -28,7 +30,7 @@ const sessionId = 'session_' + Math.random().toString(36).substring(7);
 // Initialize tanks
 function initTanks() {
     tanksGrid.innerHTML = '';
-    for (let i = 0; i < TOTAL_TANKS; i++) {
+    for (let i = 0; i < totalTanks; i++) {
         const tank = document.createElement('div');
         tank.className = 'tank empty';
         tank.dataset.index = i;
@@ -71,10 +73,11 @@ function updateDisplay() {
     
     const filled = counts.O2 + counts.N2 + counts.Other;
     
-    o2CountEl.textContent = `${counts.O2} tanks (${counts.O2 * 10}%)`;
-    n2CountEl.textContent = `${counts.N2} tanks (${counts.N2 * 10}%)`;
-    otherCountEl.textContent = `${counts.Other} tanks (${counts.Other * 10}%)`;
-    totalCountEl.textContent = `${filled} / ${TOTAL_TANKS} tanks`;
+    const percentPerTank = Math.round(1000 / totalTanks) / 10; // one decimal
+    o2CountEl.textContent = `${counts.O2} tanks (${(counts.O2 * percentPerTank).toFixed(0)}%)`;
+    n2CountEl.textContent = `${counts.N2} tanks (${(counts.N2 * percentPerTank).toFixed(0)}%)`;
+    otherCountEl.textContent = `${counts.Other} tanks (${(counts.Other * percentPerTank).toFixed(0)}%)`;
+    totalCountEl.textContent = `${filled} / ${totalTanks} tanks`;
     
     updateSafetyMeter(counts);
 }
@@ -86,7 +89,7 @@ function updateSafetyMeter(counts) {
         Math.abs(counts.N2 - targetMix.N2) +
         Math.abs(counts.Other - targetMix.Other);
     
-    const maxError = 10;
+    const maxError = currentPhase === 1 ? 10 : 5;
     const safetyPercent = Math.max(0, 100 - (errorScore / maxError * 100));
     
     safetyBar.style.width = `${safetyPercent}%`;
@@ -101,6 +104,13 @@ function updateSafetyMeter(counts) {
 }
 
 // Check mix
+function isCorrectMixPhase2(counts) {
+    // Accept either 1-3-1 or 1-4-0 for 5 tanks
+    const opt1 = counts.O2 === 1 && counts.N2 === 3 && counts.Other === 1;
+    const opt2 = counts.O2 === 1 && counts.N2 === 4 && counts.Other === 0;
+    return opt1 || opt2;
+}
+
 function checkMix() {
     if (isGameWon) return;
     
@@ -118,16 +128,21 @@ function checkMix() {
         target: targetMix,
         filled: filled,
         percentages: {
-            O2: counts.O2 * 10,
-            N2: counts.N2 * 10,
-            Other: counts.Other * 10
-        }
+            O2: Math.round((counts.O2 / totalTanks) * 100),
+            N2: Math.round((counts.N2 / totalTanks) * 100),
+            Other: Math.round((counts.Other / totalTanks) * 100)
+        },
+        phase: currentPhase
     };
     
-    // Check if correct
-    if (counts.O2 === targetMix.O2 && counts.N2 === targetMix.N2 && counts.Other === targetMix.Other) {
+    // Check if correct for current phase
+    const isCorrect = currentPhase === 1
+        ? (counts.O2 === targetMix.O2 && counts.N2 === targetMix.N2 && counts.Other === targetMix.Other)
+        : isCorrectMixPhase2(counts);
+
+    if (isCorrect) {
         isGameWon = true;
-        confirmBtn.textContent = "🎉 Mission Complete!";
+        confirmBtn.textContent = currentPhase === 1 ? "🎉 Mission Complete!" : "🎉 Emergency Solved!";
         confirmBtn.style.backgroundColor = '#4CAF50';
         safetyBar.style.width = '100%';
         safetyBar.style.backgroundColor = '#4CAF50';
@@ -137,6 +152,12 @@ function checkMix() {
             context: context,
             result: 'perfect'
         });
+
+        // If phase 1 complete, reveal next challenge button
+        if (currentPhase === 1) {
+            const nextBtn = document.getElementById('nextChallengeBtn');
+            if (nextBtn) nextBtn.style.display = 'inline-block';
+        }
         return;
     }
     
@@ -151,7 +172,7 @@ function checkMix() {
 // Reset tanks
 function resetTanks() {
     if (isGameWon) return;
-    tanks = Array(TOTAL_TANKS).fill('empty');
+    tanks = Array(totalTanks).fill('empty');
     initTanks();
     updateDisplay();
     addRalfMessage("Tanks reset! Try again, Explorer.");
@@ -332,6 +353,27 @@ playerInput.addEventListener('keypress', (e) => {
         sendPlayerMessage();
     }
 });
+
+// Transition to Phase 2: Emergency Mode (5 tanks)
+function startPhaseTwo() {
+    currentPhase = 2;
+    totalTanks = 5;
+    // Primary target for UI/safety; validation accepts 1-3-1 or 1-4-0
+    targetMix = { O2: 1, N2: 3, Other: 1 };
+    isGameWon = false;
+    confirmBtn.textContent = 'Check My Mix';
+    confirmBtn.style.backgroundColor = '';
+    tanks = Array(totalTanks).fill('empty');
+    initTanks();
+    updateDisplay();
+    if (nextChallengeBtn) nextChallengeBtn.style.display = 'none';
+    // Notify R.A.L.F.
+    sendMessageToRalf({ type: 'event', event: 'phase2_start' });
+}
+
+if (nextChallengeBtn) {
+    nextChallengeBtn.addEventListener('click', startPhaseTwo);
+}
 
 // Initialize
 initTanks();

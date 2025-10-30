@@ -20,6 +20,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname)));
+
 // Initialize OpenAI with explicit check
 if (!process.env.OPENAI_API_KEY) {
     console.error('❌ ERROR: OPENAI_API_KEY is not set in .env file');
@@ -135,9 +138,14 @@ app.post('/clear-history', (req, res) => {
     res.json({ message: 'Conversation history cleared', sessionId });
 });
 
+// Serve the main page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Start server
-app.listen(PORT, () => {
-    console.log(`🤖 R.A.L.F. backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🤖 R.A.L.F. backend running on port ${PORT}`);
     console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? '✅ Yes' : '❌ No'}`);
 });
 

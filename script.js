@@ -196,8 +196,11 @@ async function sendMessageToRalf(payload) {
     // Add session ID to payload
     payload.sessionId = sessionId;
     
+    // Use relative path for API calls (works in development and production)
+    const API_BASE = window.location.origin;
+    
     try {
-        const response = await fetch('http://localhost:3000/chat', {
+        const response = await fetch(`${API_BASE}/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -296,8 +299,10 @@ function sendPlayerMessage() {
 
 // Clear conversation history
 async function clearConversation() {
+    const API_BASE = window.location.origin;
+    
     try {
-        await fetch('http://localhost:3000/clear-history', {
+        await fetch(`${API_BASE}/clear-history`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

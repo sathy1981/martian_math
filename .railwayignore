@@ -1,0 +1,7 @@
+node_modules/
+.env
+.git/
+test_key.py
+*.log
+.DS_Store
+
